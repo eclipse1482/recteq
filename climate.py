@@ -20,19 +20,16 @@ from homeassistant.components.climate.const import (
     ATTR_MAX_TEMP,
     ATTR_MIN_TEMP,
     ATTR_TARGET_TEMP_STEP,
-    HVAC_MODE_HEAT,
-    HVAC_MODE_OFF,
-    SUPPORT_TARGET_TEMPERATURE,
+    ClimateEntityFeature,
+    HVACMode,
 )
 from homeassistant.const import (
     ATTR_TEMPERATURE,
     PRECISION_WHOLE,
     STATE_UNAVAILABLE,
-    TEMP_CELSIUS,
-    TEMP_FAHRENHEIT,
+
 )
 from homeassistant.core import callback
-from homeassistant.util.unit_system import IMPERIAL_SYSTEM, METRIC_SYSTEM
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -87,13 +84,13 @@ class RecteqClimate(climate.ClimateEntity):
     @property
     def hvac_mode(self):
         if self.is_on:
-            return HVAC_MODE_HEAT
+            return HVACMode.HEAT
 
-        return HVAC_MODE_OFF
+        return HVACMode.OFF
 
     @property
     def hvac_modes(self):
-        return [HVAC_MODE_OFF, HVAC_MODE_HEAT]
+        return [HVACMode.OFF, HVACMode.HEAT]
 
     @property
     def current_temperature(self):
@@ -111,7 +108,7 @@ class RecteqClimate(climate.ClimateEntity):
 
     @property
     def target_temperature_step(self):
-        if self.temperature_unit == TEMP_FAHRENHEIT:
+        if True:
             return 5.0
         return 2.5
 
@@ -129,18 +126,12 @@ class RecteqClimate(climate.ClimateEntity):
             self.set_hvac_mode(mode)
 
         temp = kwargs.get(ATTR_TEMPERATURE)
-        if self._device.units.temperature_unit != TEMP_FAHRENHEIT:
-            if self._device.force_fahrenheit:
-                # undo HA's conversion
-                temp = METRIC_SYSTEM.temperature(temp, TEMP_FAHRENHEIT)
-            else:
-                temp = IMPERIAL_SYSTEM.temperature(temp, self._device.units.temperature_unit)
         self._device.dps(DPS_TARGET, int(temp+0.5))
 
     def set_hvac_mode(self, hvac_mode):
-        if hvac_mode == HVAC_MODE_HEAT:
+        if hvac_mode == HVACMode.HEAT:
             self.turn_on()
-        elif hvac_mode == HVAC_MODE_OFF:
+        elif hvac_mode == HVACMode.OFF:
             self.turn_off()
         else:
             raise Exception('Invalid hvac_mode; "{}"'.format(hvac_mode))
@@ -161,7 +152,7 @@ class RecteqClimate(climate.ClimateEntity):
 
     @property
     def supported_features(self):
-        return SUPPORT_TARGET_TEMPERATURE
+        return ClimateEntityFeature.TARGET_TEMPERATURE
 
     @property
     def min_temp(self):
@@ -202,4 +193,3 @@ class RecteqClimate(climate.ClimateEntity):
     @callback
     def _update_callback(self):
         self.async_write_ha_state()
-

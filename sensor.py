@@ -8,8 +8,8 @@ from .const import (
     DPS_TARGET,
 )
 
-from homeassistant.components.sensor import DEVICE_CLASS_TEMPERATURE
-from homeassistant.const import TEMP_FAHRENHEIT, STATE_UNAVAILABLE
+from homeassistant.components.sensor import SensorDeviceClass
+from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.core import callback
 from homeassistant.helpers import entity
 
@@ -62,7 +62,7 @@ class RecteqSensor(entity.Entity):
 
     @property
     def device_class(self):
-        return DEVICE_CLASS_TEMPERATURE
+        return SensorDeviceClass.TEMPERATURE
 
     @property
     def should_poll(self):
