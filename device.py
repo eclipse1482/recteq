@@ -19,11 +19,7 @@ from .const import (
     DPS_POWER,
 )
 
-from homeassistant.const import (
-    EVENT_HOMEASSISTANT_STOP,
-    STATE_UNAVAILABLE,
-    TEMP_FAHRENHEIT,
-)
+
 from homeassistant.helpers import update_coordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -107,13 +103,11 @@ class RecteqDevice(update_coordinator.DataUpdateCoordinator):
     @property
     def temperature_unit(self):
         if self._force_fahrenheit:
-            return TEMP_FAHRENHEIT
+            return True
         return self.units.temperature_unit
 
     def temperature(self, degrees_f):
-        if self._force_fahrenheit:
-            return degrees_f
-        return self.units.temperature(degrees_f, TEMP_FAHRENHEIT)
+        return degrees_f
 
     def update(self):
         self._lock.acquire()

@@ -14,11 +14,8 @@ from .const import (
 
 from .device import RecteqDevice
 
-from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.const import ATTR_ENTITY_ID, ATTR_TEMPERATURE
-from homeassistant.exceptions import ConfigEntryNotReady
 
 from integrationhelper.const import CC_STARTUP_VERSION
 
@@ -58,4 +55,3 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
         hass.data[DOMAIN].pop(entry.entry_id)
 
     return unload_ok
-
