@@ -45,13 +45,12 @@ class RecteqFlowHandler(config_entries.ConfigFlow):
             except socket.error:
                 self._errors[CONF_IP_ADDRESS] = STR_INVALID_PREFIX + CONF_IP_ADDRESS
 
-            user_input[CONF_DEVICE_ID] = user_input[CONF_DEVICE_ID].replace(" ", " ")
+            user_input[CONF_DEVICE_ID] = user_input[CONF_DEVICE_ID].replace(" ", "")
             if (len(user_input[CONF_DEVICE_ID]) != LEN_DEVICE_ID):
                 self._errors[CONF_DEVICE_ID] = STR_INVALID_PREFIX + CONF_DEVICE_ID
 
-            user_input[CONF_LOCAL_KEY] = user_input[CONF_LOCAL_KEY].replace(" ", " ")
-            if (len(user_input[CONF_LOCAL_KEY]) != LEN_LOCAL_KEY or 
-                    not all(c in string.hexdigits for c in user_input[CONF_LOCAL_KEY])):
+            user_input[CONF_LOCAL_KEY] = user_input[CONF_LOCAL_KEY].replace(" ", "")
+            if len(user_input[CONF_LOCAL_KEY]) != LEN_LOCAL_KEY:
                 self._errors[CONF_LOCAL_KEY] = STR_INVALID_PREFIX + CONF_LOCAL_KEY
 
             user_input[CONF_PROTOCOL] = user_input[CONF_PROTOCOL].strip()

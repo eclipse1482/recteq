@@ -17,19 +17,11 @@ from .device import RecteqDevice
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from integrationhelper.const import CC_STARTUP_VERSION
-
 _LOGGER = logging.getLogger(__name__)
 
 async def async_setup(hass: HomeAssistant, config):
     hass.data[DOMAIN] = {}
-
-    _LOGGER.info(CC_STARTUP_VERSION.format(
-        name=PROJECT,
-        version=VERSION,
-        issue_link=ISSUE_LINK
-    ))
-
+    _LOGGER.info(f"Recteq integration version {VERSION} loaded. For issues, please report at {ISSUE_LINK}")
     return True
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
