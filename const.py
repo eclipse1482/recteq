@@ -18,8 +18,8 @@ PLATFORMS = ['climate', 'sensor']
 DPS_POWER  = '1'
 DPS_TARGET = '101'
 DPS_ACTUAL = '102'
-DPS_PROBEA = '104'
-DPS_PROBEB = '105'
+DPS_PROBEA = '103' # RT700 uses 103, newer grills must use 104
+DPS_PROBEB = '104' # RT700 uses 104, newer grills must use 105
 
 ATTR_POWER  = 'power'   # read/write
 ATTR_TARGET = 'target'  # read/write
