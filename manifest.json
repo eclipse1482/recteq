@@ -1,7 +1,7 @@
 {
   "domain": "recteq",
   "name": "Recteq",
-  "version": "v0.1.0",
+  "version": "v0.2.0",
   "documentation": "https://github.com/mochman/recteq/wiki",
   "issue_tracker": "https://github.com/mochman/recteq/issues",
   "dependencies": [],
