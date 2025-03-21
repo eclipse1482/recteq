@@ -1,17 +1,17 @@
 # Home Assistant Recteq Integration
 
-> This is no longer working for me. Seems the protocol has changed but I don't have the time to work on it any more. Sorry gang.
+> This was an abandoned fork that was picked up by others including mochman who made some great improvements. However, I needed to modify it to get my RT700 working and I am hoping to add some capabilities and make this integration more robust for most users. I will need feedback to capture the changes though as I only have one grill to test one :)
 
 Custom integration for [recteq][recteq] grills and smokers providing a climate
 entity to control the unit and sensor entities for the probes.
 
 [![hacs-badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![issue-badge](https://img.shields.io/github/issues/mochman/recteq)](https://github.com/mochman/recteq/issues)
-[![pr-badge](https://img.shields.io/github/issues-pr/mochman/recteq)](https://github.com/mochman/recteq/issues)
-[![release-badge](https://img.shields.io/github/v/release/mochman/recteq?sort=semver)](https://github.com/mochman/recteq/releases/latest)
-[![commit-badge](https://img.shields.io/github/last-commit/mochman/recteq)](https://github.com/mochman/recteq/commit/main)
-[![license-badge](https://img.shields.io/github/license/mochman/recteq)](https://github.com/mochman/recteq/blob/main/LICENSE)
-[![commits-badge](https://img.shields.io/github/commits-since/mochman/recteq/latest/main?sort=semver)](https://github.com/mochman/recteq/commits/main)
+[![issue-badge](https://img.shields.io/github/issues/eclipse1482/recteq)](https://github.com/eclipse1482/recteq/issues)
+[![pr-badge](https://img.shields.io/github/issues-pr/eclipse1482/recteq)](https://github.com/eclipse1482/recteq/issues)
+[![release-badge](https://img.shields.io/github/v/release/eclipse1482/recteq?sort=semver)](https://github.com/eclipse1482/recteq/releases/latest)
+[![commit-badge](https://img.shields.io/github/last-commit/eclipse1482/recteq)](https://github.com/eclipse1482/recteq/commit/main)
+[![license-badge](https://img.shields.io/github/license/eclipse1482/recteq)](https://github.com/eclipse1482/recteq/blob/main/LICENSE)
+[![commits-badge](https://img.shields.io/github/commits-since/eclipse1482/recteq/latest/main?sort=semver)](https://github.com/eclipse1482/recteq/commits/main)
 
 > **NOTE** - This isn't supported or approved by [recteq][recteq] at all!
 
@@ -142,9 +142,14 @@ sensor:
 
 ## Change Log
 
+* _future_
+  * Fix error for async_forward_entry_setup being deprecated 
+  * Add low and full modes
 * _next_
-  * Fix for setting target temp when Force-Fahrenheit enabled
-  * Moved force-fahrenheit to options.
+  * Fixing DPS for RT700
+  * Fixed Tuya Protocol 3.4 and ability for Local Key to use more the hex digits for new controllers
+  * Fixed issue that caused Home Assistant to slow down significantly when integration was enabled, but grill was offline
+  * Adding drop down to select Tuya Protocol and Grill Type which will dynamically point the correct data points to probe names (I will need help to make sure I align them correctly so this will be a work in progress)
 * 0.0.5
   * Fixed Device Key Length
   * Fixed Probe Temps
@@ -180,10 +185,11 @@ others.
 
 ## Credits
 
-This is from a forked repo by Paul Dugas, <paul@dugas.cc>.
+This is forked from mochman (https://github.com/mochman) who forked the repo by Paul Dugas, <paul@dugas.cc>.
 
-He learned this was possible from [`SDNick484/rectec_status`][rectec_status] and
+Paul Dugas learned this was possible from [`SDNick484/rectec_status`][rectec_status] and
 based the intial versions of the project on his examples. Much thanks to
+[mochman](https://github.com/mochman/),
 [SDNick](https://github.com/SDNick484/) along with those he credits;
 [codetheweb](https://github.com/codetheweb/),
 [clach04](https://github.com/clach04),

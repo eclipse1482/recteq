@@ -1,12 +1,12 @@
 {
   "domain": "recteq",
   "name": "Recteq",
-  "version": "v0.1.0",
-  "documentation": "https://github.com/mochman/recteq/wiki",
-  "issue_tracker": "https://github.com/mochman/recteq/issues",
+  "version": "v0.2.0",
+  "documentation": "https://github.com/eclipse1482/recteq/wiki",
+  "issue_tracker": "https://github.com/eclipse1482/recteq/issues",
   "dependencies": [],
   "after_dependencies": [],
-  "codeowners": ["@mochman"],
+  "codeowners": ["@eclipse1482"],
   "requirements": ["tinytuya==1.9.1"],
   "config_flow": true,
   "iot_class": "local_polling"
