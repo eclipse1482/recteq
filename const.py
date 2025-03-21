@@ -2,15 +2,6 @@
 
 import homeassistant.const as hac
 
-PROJECT = 'Recteq Custom Integration'
-
-VERSION_TUPLE = (0, 0, 4)
-VERSION = __version__ = '%d.%d.%d' % VERSION_TUPLE
-
-__author__ = 'Paul Dugas <paul@dugas.cc>'
-
-ISSUE_LINK = 'https://github.com/mochman/recteq/issues'
-
 DOMAIN = 'recteq'
 
 PLATFORMS = ['climate', 'sensor']
