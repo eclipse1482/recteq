@@ -22,7 +22,7 @@ entity to control the unit and sensor entities for the probes.
 ## Installation
 
 We recommend you install [HACS](https://hacs.xyz/) first, then add
-<https://github.com/mochman/recteq> as a custom integration repository and
+<https://github.com/ecliose1482/recteq> as a custom integration repository and
 finally, add the integration from there.
 
 Instead, if you prefer the manual route, you could download a copy of the
