@@ -1,6 +1,6 @@
 # Home Assistant Recteq Integration
 
-> This was an abandoned fork that was picked up by others including mochman who made some great improvements. However, I needed to modify it to get my RT700 working and I am hoping to add some capabilities and make this integration more robust for most users. I will need feedback to capture the changes though as I only have one grill to test one :)
+> This was an abandoned fork that was picked up by others including mochman who made some great improvements. However, I needed to modify it to get my RT700 working and I am hoping to add some capabilities and make this integration more robust for most users. I will need feedback to capture the changes though as I only have one grill to test on :)
 
 Custom integration for [recteq][recteq] grills and smokers providing a climate
 entity to control the unit and sensor entities for the probes.
