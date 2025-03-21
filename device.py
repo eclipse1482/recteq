@@ -159,7 +159,7 @@ class RecteqDevice(update_coordinator.DataUpdateCoordinator):
             self._consecutive_failures += 1
             if self._consecutive_failures >= 3:
                 self.update_interval = UPDATE_INTERVAL_OFFLINE
-                _LOGGER.debug("Three consecutive failures, update interval set  60 seconds")
+                _LOGGER.debug("Three consecutive failures, next update interval is 60 seconds")
             else:
                 self.update_interval = UPDATE_INTERVAL_ONLINE
                 _LOGGER.debug("Update failed, but less than three failures, keeping 10 seconds")
