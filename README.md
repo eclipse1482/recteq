@@ -47,12 +47,11 @@ You'll get the dialog shown below. Enter the details for your grill and tap
 
 Repeat the process if you have multiple grills to control. _(ps: I'm jealous!)_
 
-See the [wiki](https://github.com/mochman/recteq/wiki) for info in where to get
+See the [wiki](https://github.com/eclipse1482/recteq/wiki) for info in where to get
 the IP address, device ID and local key values needed.
 
 The "Force Fahrenheit" option was added for folks who operate HA in Celsius but
-cook in Fahrenheit. The climate and sensor entities will report tempeatures in
-Fahrenheit rather than converting them to Celsius when this option is set. The
+cook in Fahrenheit. The climate and sensor entities will report temperatures in Fahrenheit rather than converting them to Celsius when this option is set. The
 thermostat card will still display °C but the values will actually be °F.
 
 ## User Interface
