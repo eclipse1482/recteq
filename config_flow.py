@@ -12,6 +12,7 @@ from .const import (
     CONF_LOCAL_KEY,
     CONF_NAME,
     CONF_PROTOCOL,
+    CONF_GRILL_TYPE,
     CONF_FORCE_FAHRENHEIT,
     DEFAULT_PROTOCOL,
     DOMAIN,
@@ -71,6 +72,7 @@ class RecteqFlowHandler(config_entries.ConfigFlow):
         device_id        = ''
         local_key        = ''
         protocol         = DEFAULT_PROTOCOL
+        grill_type       = 'RT700'
 
         if user_input is not None:
             if CONF_NAME in user_input:
@@ -83,16 +85,19 @@ class RecteqFlowHandler(config_entries.ConfigFlow):
                 local_key = user_input[CONF_LOCAL_KEY]
             if CONF_PROTOCOL in user_input:
                 protocol = user_input[CONF_PROTOCOL]
+            if CONF_GRILL_TYPE in user_input:
+                grill_type = user_input[CONF_GRILL_TYPE]
             if CONF_FORCE_FAHRENHEIT in user_input:
                 force_fahrenheit = user_input[CONF_FORCE_FAHRENHEIT]
 
         data_schema = OrderedDict()
-        data_schema[vol.Required(CONF_NAME,             default=name)]             = str
-        data_schema[vol.Required(CONF_IP_ADDRESS,       default=ip_address)]       = str
-        data_schema[vol.Required(CONF_DEVICE_ID,        default=device_id)]        = str
-        data_schema[vol.Required(CONF_LOCAL_KEY,        default=local_key)]        = str
-        data_schema[vol.Required(CONF_PROTOCOL,         default=protocol)]         = str
-
+        data_schema[vol.Required(CONF_NAME, default=name)] = str
+        data_schema[vol.Required(CONF_IP_ADDRESS, default=ip_address)] = str
+        data_schema[vol.Required(CONF_DEVICE_ID, default=device_id)] = str
+        data_schema[vol.Required(CONF_LOCAL_KEY, default=local_key)] = str
+        data_schema[vol.Required(CONF_PROTOCOL, default=protocol)] = vol.In(["3.1", "3.3", "3.4"])
+        data_schema[vol.Required(CONF_GRILL_TYPE, default=grill_type)] = vol.In(["RT590", "RT700", "Other"])
+        
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(data_schema),
