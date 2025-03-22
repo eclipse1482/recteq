@@ -1,4 +1,4 @@
-"""[The Recteq integration."""
+"""The Recteq integration."""
 
 import logging
 import tinytuya
@@ -16,7 +16,8 @@ from .const import (
     CONF_LOCAL_KEY,
     CONF_NAME,
     CONF_PROTOCOL,
-    DPS_POWER,
+    GRILL_MODELS,
+    CONF_GRILL_TYPE,
 )
 
 from homeassistant.helpers import update_coordinator
@@ -44,6 +45,11 @@ class RecteqDevice(update_coordinator.DataUpdateCoordinator):
         self._protocol = entry.data[CONF_PROTOCOL]
         self._force_fahrenheit = entry.options.get(CONF_FORCE_FAHRENHEIT, False)
         _LOGGER.debug("force_fahrenheit is {}".format(self._force_fahrenheit))
+
+        # Get grill-specific DPS values based on grill type
+        self._grill_type = entry.data[CONF_GRILL_TYPE]
+        self._dps = GRILL_MODELS[self._grill_type]
+        self._dps_power = self._dps['DPS_POWER']
 
         self._pytuya = tinytuya.OutletDevice(self._device_id, self._ip_address, self._local_key)
         self._pytuya.set_version(float(self._protocol))
@@ -83,7 +89,8 @@ class RecteqDevice(update_coordinator.DataUpdateCoordinator):
 
     @property
     def is_on(self):
-        return self.dps(DPS_POWER)
+        # Use the grill-specific DPS_POWER value
+        return self.dps(self._dps_power)
 
     @property
     def is_off(self):
