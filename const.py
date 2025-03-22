@@ -2,6 +2,13 @@
 
 import homeassistant.const as hac
 
+# These points are required by the HACS integration
+PROJECT = 'Recteq Custom Integration'
+VERSION_TUPLE = (0, 2, 3)
+VERSION = __version__ = '%d.%d.%d' % VERSION_TUPLE
+__author__ = 'Paul Dugas <paul@dugas.cc>'
+ISSUE_LINK = 'https://github.com/eclipse1482/recteq/issues'
+
 DOMAIN = 'recteq'
 
 PLATFORMS = ['climate', 'sensor']

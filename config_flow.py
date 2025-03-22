@@ -3,6 +3,7 @@
 import socket
 import uuid
 import voluptuous as vol
+from homeassistant.helpers.selector import selector  # Import selector for dropdown support
 
 from .const import (
     CONF_DEVICE_ID, CONF_IP_ADDRESS, CONF_LOCAL_KEY, CONF_NAME, CONF_PROTOCOL,
@@ -85,9 +86,21 @@ class RecteqFlowHandler(config_entries.ConfigFlow):
         data_schema[vol.Required(CONF_IP_ADDRESS, default=ip_address)] = str
         data_schema[vol.Required(CONF_DEVICE_ID, default=device_id)] = str
         data_schema[vol.Required(CONF_LOCAL_KEY, default=local_key)] = str
-        data_schema[vol.Required(CONF_PROTOCOL, default=protocol)] = vol.In(PROTOCOLS)
-        data_schema[vol.Required(CONF_GRILL_TYPE, default=grill_type)] = vol.In(GRILL_TYPES)
-        
+        # Use selector to force protocol type as a dropdown
+        data_schema[vol.Required(CONF_PROTOCOL, default=protocol)] = selector({
+            "select": {
+                "options": PROTOCOLS,
+                "mode": "dropdown"
+            }
+        })
+        # Use selector to force grill type as a dropdown
+        data_schema[vol.Required(CONF_GRILL_TYPE, default=grill_type)] = selector({
+            "select": {
+                "options": GRILL_TYPES,  # Assuming GRILL_TYPES is a list like ['RT590', 'RT700']
+                "mode": "dropdown"       # Explicitly set to dropdown
+            }
+        })
+
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(data_schema),

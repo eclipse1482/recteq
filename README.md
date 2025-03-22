@@ -144,12 +144,11 @@ sensor:
 * _future_
   * Fix error for async_forward_entry_setup being deprecated 
   * Add low and full modes
-* _next_
+* 0.2.1
   * Fixing DPS for RT700
   * Fixed Tuya Protocol 3.4 and ability for Local Key to use more the hex digits for new controllers
   * Fixed issue that caused Home Assistant to slow down significantly when integration was enabled, but grill was offline
   * Adding drop down to select Tuya Protocol and Grill Type which will dynamically point the correct data points to probe names (I will need help to make sure I align them correctly so this will be a work in progress)
-* 0.0.5
   * Fixed Device Key Length
   * Fixed Probe Temps
   * Switched to tintuya for data reading
