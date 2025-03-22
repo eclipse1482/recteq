@@ -8,7 +8,7 @@
         "data": {
           "name": "Friendly Name (e.g., \"RT-590\" or \"Smoker\")",
           "ip_address": "IP Address",
-          "force_fahrenheit": "Force Fahrenheit"
+          "force_fahrenheit": "Force Fahrenheit",
           "device_id": "Device ID (20 - 22 hex digits)",
           "local_key": "Local Key (exactly 16 characters)",
           "protocol": "Protocol Version",
