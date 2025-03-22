@@ -8,6 +8,7 @@
         "data": {
           "name": "Friendly Name (e.g., \"RT-590\" or \"Smoker\")",
           "ip_address": "IP Address",
+          "force_fahrenheit": "Force Fahrenheit"
           "device_id": "Device ID (20 - 22 hex digits)",
           "local_key": "Local Key (exactly 16 characters)",
           "protocol": "Protocol Version",
@@ -18,7 +19,7 @@
     "error": {
       "please_correct": "Please correct the errors below.",
       "invalid_ip_address": "The IP Address is invalid. Please enter a valid '#.#.#.#' IPv4 address.",
-      "invalid_device_id": "The Device ID is invalid. Please enter exactly 22 hex digits.",
+      "invalid_device_id": "The Device ID is invalid. Please enter up to 22 hex digits.",
       "invalid_local_key": "The Local Key is invalid. Please enter exactly 16 characters.",
       "invalid_protocol": "The Protocol is invalid.",
       "device_id_already_configured": "A config entry for this device ID already exists."

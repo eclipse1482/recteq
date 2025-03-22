@@ -6,11 +6,30 @@ DOMAIN = 'recteq'
 
 PLATFORMS = ['climate', 'sensor']
 
-DPS_POWER  = '1'
-DPS_TARGET = '101'
-DPS_ACTUAL = '102'
-DPS_PROBEA = '103' # RT700 uses 103, newer grills must use 104
-DPS_PROBEB = '104' # RT700 uses 104, newer grills must use 105
+GRILL_MODELS = {
+    'RT590': {
+        'DPS_POWER': '1',
+        'DPS_TARGET': '101',
+        'DPS_ACTUAL': '102',
+        'DPS_PROBEA': '104',
+        'DPS_PROBEB': '105',
+        'TEMP_MIN': 200,
+        'TEMP_MAX': 500
+    },
+    'RT700': {
+        'DPS_POWER': '1',
+        'DPS_TARGET': '101',
+        'DPS_ACTUAL': '102',
+        'DPS_PROBEA': '103',
+        'DPS_PROBEB': '104',
+        'TEMP_MIN': 200,
+        'TEMP_MAX': 500
+    }
+}
+
+GRILL_TYPES = list(GRILL_MODELS.keys())
+CONF_GRILL_TYPE = 'grill_type'
+DEFAULT_GRILL_TYPE = 'RT700'
 
 ATTR_POWER  = 'power'   # read/write
 ATTR_TARGET = 'target'  # read/write
@@ -37,7 +56,7 @@ CONF_LOCAL_KEY        = 'local_key'
 CONF_PROTOCOL         = 'protocol'
 CONF_FORCE_FAHRENHEIT = 'force_fahrenheit'
 
-DEFAULT_PROTOCOL = PROTOCOL_3_3
+DEFAULT_PROTOCOL = PROTOCOL_3_4
 
 STR_INVALID_PREFIX = 'invalid_'
 STR_PLEASE_CORRECT = 'please_correct'
