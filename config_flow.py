@@ -12,6 +12,7 @@ from .const import (
     CONF_LOCAL_KEY,
     CONF_NAME,
     CONF_PROTOCOL,
+    CONF_GRILL_TYPE,
     CONF_FORCE_FAHRENHEIT,
     DEFAULT_PROTOCOL,
     DOMAIN,
@@ -46,7 +47,7 @@ class RecteqFlowHandler(config_entries.ConfigFlow):
                 self._errors[CONF_IP_ADDRESS] = STR_INVALID_PREFIX + CONF_IP_ADDRESS
 
             user_input[CONF_DEVICE_ID] = user_input[CONF_DEVICE_ID].replace(" ", "")
-            if (len(user_input[CONF_DEVICE_ID]) != LEN_DEVICE_ID):
+            if (len(user_input[CONF_DEVICE_ID]) > LEN_DEVICE_ID):
                 self._errors[CONF_DEVICE_ID] = STR_INVALID_PREFIX + CONF_DEVICE_ID
 
             user_input[CONF_LOCAL_KEY] = user_input[CONF_LOCAL_KEY].replace(" ", "")
@@ -71,6 +72,7 @@ class RecteqFlowHandler(config_entries.ConfigFlow):
         device_id        = ''
         local_key        = ''
         protocol         = DEFAULT_PROTOCOL
+        grill_type       = 'RT700'
 
         if user_input is not None:
             if CONF_NAME in user_input:
@@ -83,16 +85,19 @@ class RecteqFlowHandler(config_entries.ConfigFlow):
                 local_key = user_input[CONF_LOCAL_KEY]
             if CONF_PROTOCOL in user_input:
                 protocol = user_input[CONF_PROTOCOL]
+            if CONF_GRILL_TYPE in user_input:
+                grill_type = user_input[CONF_GRILL_TYPE]
             if CONF_FORCE_FAHRENHEIT in user_input:
                 force_fahrenheit = user_input[CONF_FORCE_FAHRENHEIT]
 
         data_schema = OrderedDict()
-        data_schema[vol.Required(CONF_NAME,             default=name)]             = str
-        data_schema[vol.Required(CONF_IP_ADDRESS,       default=ip_address)]       = str
-        data_schema[vol.Required(CONF_DEVICE_ID,        default=device_id)]        = str
-        data_schema[vol.Required(CONF_LOCAL_KEY,        default=local_key)]        = str
-        data_schema[vol.Required(CONF_PROTOCOL,         default=protocol)]         = str
-
+        data_schema[vol.Required(CONF_NAME, default=name)] = str
+        data_schema[vol.Required(CONF_IP_ADDRESS, default=ip_address)] = str
+        data_schema[vol.Required(CONF_DEVICE_ID, default=device_id)] = str
+        data_schema[vol.Required(CONF_LOCAL_KEY, default=local_key)] = str
+        data_schema[vol.Required(CONF_PROTOCOL, default=protocol)] = vol.In(PROTOCOLS)
+        data_schema[vol.Required(CONF_GRILL_TYPE, default=grill_type)] = vol.In(GRILL_TYPES)
+        
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(data_schema),
