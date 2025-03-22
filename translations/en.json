@@ -4,7 +4,7 @@
     "step": {
       "user": {
         "title": "Configure Recteq Grill",
-        "description": "Enter the name and communication parameters for your recteq.\n\nVisit [the wiki](https://github.com/mochman/homeassistant-recteq/wiki) for assistance figuring out these values.",
+        "description": "Enter the name and communication parameters for your recteq.\n\nVisit [the wiki](https://github.com/eclipse1482/homeassistant-recteq/wiki) for assistance figuring out these values.",
         "data": {
           "name": "Friendly Name (e.g., \"RT-590\" or \"Smoker\")",
           "ip_address": "IP Address",
@@ -12,7 +12,7 @@
           "device_id": "Device ID (20 - 22 hex digits)",
           "local_key": "Local Key (exactly 16 characters)",
           "protocol": "Protocol Version",
-          "grill_type": "Grill Type"
+          "grill_type": "Grill Model"
         }
       }
     },
