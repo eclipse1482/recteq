@@ -80,13 +80,16 @@ class RecteqFlowHandler(config_entries.ConfigFlow):
             if CONF_GRILL_TYPE in user_input:
                 grill_type = user_input[CONF_GRILL_TYPE]
 
+        # Create a dictionary for grill types to display as a dropdown
+        grill_type_options = {model: model for model in GRILL_TYPES}
+
         data_schema = OrderedDict()
         data_schema[vol.Required(CONF_NAME, default=name)] = str
         data_schema[vol.Required(CONF_IP_ADDRESS, default=ip_address)] = str
         data_schema[vol.Required(CONF_DEVICE_ID, default=device_id)] = str
         data_schema[vol.Required(CONF_LOCAL_KEY, default=local_key)] = str
         data_schema[vol.Required(CONF_PROTOCOL, default=protocol)] = vol.In(PROTOCOLS)
-        data_schema[vol.Required(CONF_GRILL_TYPE, default=grill_type)] = vol.In(GRILL_TYPES)
+        data_schema[vol.Required(CONF_GRILL_TYPE, default=grill_type)] = vol.In(grill_type_options)
         
         return self.async_show_form(
             step_id="user",
