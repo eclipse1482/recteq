@@ -1,26 +1,14 @@
 """Config flow for the Recteq integration."""
 
-import asyncio
 import socket
-import string
 import uuid
 import voluptuous as vol
 
 from .const import (
-    CONF_DEVICE_ID,
-    CONF_IP_ADDRESS,
-    CONF_LOCAL_KEY,
-    CONF_NAME,
-    CONF_PROTOCOL,
-    CONF_GRILL_TYPE,
-    CONF_FORCE_FAHRENHEIT,
-    DEFAULT_PROTOCOL,
-    DOMAIN,
-    LEN_DEVICE_ID,
-    LEN_LOCAL_KEY,
-    PROTOCOLS,
-    STR_INVALID_PREFIX,
-    STR_PLEASE_CORRECT,
+    CONF_DEVICE_ID, CONF_IP_ADDRESS, CONF_LOCAL_KEY, CONF_NAME, CONF_PROTOCOL,
+    CONF_GRILL_TYPE, GRILL_TYPES, DEFAULT_GRILL_TYPE, CONF_FORCE_FAHRENHEIT,
+    DEFAULT_PROTOCOL, DOMAIN, LEN_DEVICE_ID, LEN_LOCAL_KEY, PROTOCOLS,
+    STR_INVALID_PREFIX, STR_PLEASE_CORRECT,
 )
 from collections import OrderedDict
 from homeassistant import config_entries
@@ -33,7 +21,6 @@ class RecteqFlowHandler(config_entries.ConfigFlow):
     def __init__(self):
         self._errors = {}
         self._data = {}
-        self._data["unique_id"] = str(uuid.uuid4())
 
     async def async_step_user(self, user_input=None):
         self._errors = {}
@@ -47,7 +34,7 @@ class RecteqFlowHandler(config_entries.ConfigFlow):
                 self._errors[CONF_IP_ADDRESS] = STR_INVALID_PREFIX + CONF_IP_ADDRESS
 
             user_input[CONF_DEVICE_ID] = user_input[CONF_DEVICE_ID].replace(" ", "")
-            if (len(user_input[CONF_DEVICE_ID]) > LEN_DEVICE_ID):
+            if len(user_input[CONF_DEVICE_ID]) > LEN_DEVICE_ID:
                 self._errors[CONF_DEVICE_ID] = STR_INVALID_PREFIX + CONF_DEVICE_ID
 
             user_input[CONF_LOCAL_KEY] = user_input[CONF_LOCAL_KEY].replace(" ", "")
@@ -58,8 +45,13 @@ class RecteqFlowHandler(config_entries.ConfigFlow):
             if user_input[CONF_PROTOCOL] not in PROTOCOLS:
                 self._errors[CONF_PROTOCOL] = STR_INVALID_PREFIX + CONF_PROTOCOL
 
-            if self._errors == {}:
-                self.init_info = user_input
+            existing_entries = self.hass.config_entries.async_entries(DOMAIN)
+            for entry in existing_entries:
+                if entry.data[CONF_DEVICE_ID] == user_input[CONF_DEVICE_ID]:
+                    self._errors["base"] = "device_id_already_configured"
+                    break
+
+            if not self._errors:
                 return self.async_create_entry(title=self._data[CONF_NAME], data=self._data)
             else:
                 self._errors["base"] = STR_PLEASE_CORRECT
@@ -67,12 +59,12 @@ class RecteqFlowHandler(config_entries.ConfigFlow):
         return await self._show_user_form(user_input)
 
     async def _show_user_form(self, user_input):
-        name             = ''
-        ip_address       = ''
-        device_id        = ''
-        local_key        = ''
-        protocol         = DEFAULT_PROTOCOL
-        grill_type       = 'RT700'
+        name = ''
+        ip_address = ''
+        device_id = ''
+        local_key = ''
+        protocol = DEFAULT_PROTOCOL
+        grill_type = DEFAULT_GRILL_TYPE
 
         if user_input is not None:
             if CONF_NAME in user_input:
@@ -87,8 +79,6 @@ class RecteqFlowHandler(config_entries.ConfigFlow):
                 protocol = user_input[CONF_PROTOCOL]
             if CONF_GRILL_TYPE in user_input:
                 grill_type = user_input[CONF_GRILL_TYPE]
-            if CONF_FORCE_FAHRENHEIT in user_input:
-                force_fahrenheit = user_input[CONF_FORCE_FAHRENHEIT]
 
         data_schema = OrderedDict()
         data_schema[vol.Required(CONF_NAME, default=name)] = str
@@ -110,7 +100,6 @@ class RecteqFlowHandler(config_entries.ConfigFlow):
         return OptionsFlowHandler(config_entry)
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
-
     def __init__(self, config_entry):
         self.config_entry = config_entry
 
@@ -127,9 +116,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 {
                     vol.Required(
                         CONF_FORCE_FAHRENHEIT,
-                        default=self.config_entry.options.get(CONF_FORCE_FAHRENHEIT)
+                        default=self.config_entry.options.get(CONF_FORCE_FAHRENHEIT, False)
                     ): bool
                 }
             ),
         )
-

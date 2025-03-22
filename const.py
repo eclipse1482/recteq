@@ -2,24 +2,34 @@
 
 import homeassistant.const as hac
 
-PROJECT = 'Recteq Custom Integration'
-
-VERSION_TUPLE = (0, 0, 4)
-VERSION = __version__ = '%d.%d.%d' % VERSION_TUPLE
-
-__author__ = 'Paul Dugas <paul@dugas.cc>'
-
-ISSUE_LINK = 'https://github.com/mochman/recteq/issues'
-
 DOMAIN = 'recteq'
 
 PLATFORMS = ['climate', 'sensor']
 
-DPS_POWER  = '1'
-DPS_TARGET = '101'
-DPS_ACTUAL = '102'
-DPS_PROBEA = '103' # RT700 uses 103, newer grills must use 104
-DPS_PROBEB = '104' # RT700 uses 104, newer grills must use 105
+GRILL_MODELS = {
+    'RT590': {
+        'DPS_POWER': '1',
+        'DPS_TARGET': '101',
+        'DPS_ACTUAL': '102',
+        'DPS_PROBEA': '104',
+        'DPS_PROBEB': '105',
+        'TEMP_MIN': 200,
+        'TEMP_MAX': 500
+    },
+    'RT700': {
+        'DPS_POWER': '1',
+        'DPS_TARGET': '101',
+        'DPS_ACTUAL': '102',
+        'DPS_PROBEA': '103',
+        'DPS_PROBEB': '104',
+        'TEMP_MIN': 200,
+        'TEMP_MAX': 500
+    }
+}
+
+GRILL_TYPES = list(GRILL_MODELS.keys())
+CONF_GRILL_TYPE = 'grill_type'
+DEFAULT_GRILL_TYPE = 'RT700'
 
 ATTR_POWER  = 'power'   # read/write
 ATTR_TARGET = 'target'  # read/write
@@ -35,7 +45,6 @@ PROTOCOL_3_3 = '3.3'
 PROTOCOL_3_4 = '3.4'
 
 PROTOCOLS = [PROTOCOL_3_1, PROTOCOL_3_3, PROTOCOL_3_4]
-GRILL_TYPES = ['RT590','RT700','Other']
 
 LEN_DEVICE_ID = 22
 LEN_LOCAL_KEY = 16
