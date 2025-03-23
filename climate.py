@@ -11,7 +11,7 @@ from .const import (
 )
 from .device import RecteqDevice
 
-from homeassistant.components import climate
+from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     ATTR_CURRENT_TEMPERATURE,
     ATTR_HVAC_MODE,
@@ -31,14 +31,14 @@ from homeassistant.core import callback
 
 _LOGGER = logging.getLogger(__name__)
 
-ICON = 'mdi:grill'
+ICON = "mdi:grill"
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the Recteq climate entity from a config entry."""
     device = hass.data[DOMAIN][entry.entry_id]
     async_add_entities([RecteqClimate(entry, device)])
 
-class RecteqClimate(climate.ClimateEntity):
+class RecteqClimate(ClimateEntity):
     """Representation of a Recteq grill climate entity."""
 
     def __init__(self, config_entry, device: RecteqDevice):
@@ -48,8 +48,17 @@ class RecteqClimate(climate.ClimateEntity):
         self._device = device
         self._grill_type = config_entry.data[CONF_GRILL_TYPE]
         self._dps = GRILL_MODELS[self._grill_type]  # Store grill-type-specific DPS
-        self._temp_min = self._dps['TEMP_MIN']
-        self._temp_max = self._dps['TEMP_MAX']
+        self._temp_min = self._dps["TEMP_MIN"]  # e.g., 200°F
+        self._temp_max = self._dps["TEMP_MAX"]  # e.g., 500°F
+        self._low_mode_temp = self._dps["LOW_MODE_TEMP"]  # e.g., 180°F
+        self._full_mode_temp = self._dps["FULL_MODE_TEMP"]  # e.g., 600°F
+        self._attr_min_temp = self._low_mode_temp
+        self._attr_max_temp = self._full_mode_temp
+        self._attr_target_temperature_step = 5.0
+        self._attr_target_temperature = None
+        self._intended_target_temperature = None  # Track the intended temperature
+        self._attr_current_temperature = None
+        self._attr_hvac_mode = HVACMode.OFF
 
     @property
     def name(self):
@@ -96,7 +105,7 @@ class RecteqClimate(climate.ClimateEntity):
     @property
     def current_temperature(self):
         """Return the current temperature."""
-        temp = self._device.dps(self._dps['DPS_ACTUAL'])
+        temp = self._device.dps(self._dps["DPS_ACTUAL"])
         if temp is None:
             return None
         return round(float(self._device.temperature(temp)), 1)
@@ -104,35 +113,46 @@ class RecteqClimate(climate.ClimateEntity):
     @property
     def target_temperature(self):
         """Return the target temperature."""
-        temp = self._device.dps(self._dps['DPS_TARGET'])
+        temp = self._device.dps(self._dps["DPS_TARGET"])
         if temp is None:
             return None
         return round(float(self._device.temperature(temp)), 1)
 
-    @property
-    def target_temperature_step(self):
-        """Return the target temperature step."""
-        # TODO: Could be made grill-type-specific via GRILL_MODELS
-        return 5.0
-
-    @property
-    def target_temperature_high(self):
-        """Return the highest allowable target temperature."""
-        return self.max_temp
-
-    @property
-    def target_temperature_low(self):
-        """Return the lowest allowable target temperature."""
-        return self.min_temp
-
     def set_temperature(self, **kwargs):
-        """Set a new target temperature."""
-        mode = kwargs.get(ATTR_HVAC_MODE)
-        if mode is not None:
-            self.set_hvac_mode(mode)
+        """Set a new target temperature with snapping and jumping logic."""
         temp = kwargs.get(ATTR_TEMPERATURE)
         if temp is not None:
-            self._device.dps(self._dps['DPS_TARGET'], int(temp + 0.5))
+            current_temp = self._attr_target_temperature
+            step = self._attr_target_temperature_step  # e.g., 5°F
+
+            if current_temp is not None:
+                # Handle button presses (exact step size change)
+                if abs(temp - current_temp) == step:
+                    if current_temp == self._temp_min and temp < current_temp:
+                        temp = self._low_mode_temp  # Jump to low mode
+                    elif current_temp == self._temp_max and temp > current_temp:
+                        temp = self._full_mode_temp  # Jump to full mode
+                    else:
+                        # Normal step, keep within min and max
+                        temp = max(self._temp_min, min(self._temp_max, temp))
+                else:
+                    # Handle slider movement with snapping
+                    if self._low_mode_temp < temp < self._temp_min:
+                        temp = self._temp_min  # Snap to min
+                    elif self._temp_max < temp < self._full_mode_temp:
+                        temp = self._temp_max  # Snap to max
+                    # Ensure temperature stays within overall bounds
+                    temp = max(self._low_mode_temp, min(self._full_mode_temp, temp))
+
+            # Send the new temperature to the device
+            self._device.dps(self._dps["DPS_TARGET"], int(temp + 0.5))
+            # Set the intended target temperature
+            self._intended_target_temperature = temp
+            # Update the entity's target temperature immediately for the UI
+            self._attr_target_temperature = temp
+            _LOGGER.info(f"Set intended target temperature to {temp}°F")
+            # Update the UI right away in a thread-safe manner
+            self.hass.loop.call_soon_threadsafe(lambda: self.async_write_ha_state())
 
     def set_hvac_mode(self, hvac_mode):
         """Set the HVAC mode."""
@@ -141,7 +161,7 @@ class RecteqClimate(climate.ClimateEntity):
         elif hvac_mode == HVACMode.OFF:
             self.turn_off()
         else:
-            raise ValueError(f'Invalid hvac_mode: "{hvac_mode}"')
+            raise ValueError(f"Invalid hvac_mode: '{hvac_mode}'")
 
     @property
     def is_on(self):
@@ -155,11 +175,11 @@ class RecteqClimate(climate.ClimateEntity):
 
     def turn_on(self):
         """Turn the grill on."""
-        self._device.dps(self._dps['DPS_POWER'], POWER_ON)
+        self._device.dps(self._dps["DPS_POWER"], POWER_ON)
 
     def turn_off(self):
         """Turn the grill off."""
-        self._device.dps(self._dps['DPS_POWER'], POWER_OFF)
+        self._device.dps(self._dps["DPS_POWER"], POWER_OFF)
 
     @property
     def supported_features(self):
@@ -168,18 +188,18 @@ class RecteqClimate(climate.ClimateEntity):
 
     @property
     def min_temp(self):
-        """Return the minimum temperature."""
-        return round(self._device.temperature(self._temp_min), 1)
+        """Return the minimum temperature (low mode)."""
+        return self._attr_min_temp
 
     @property
     def max_temp(self):
-        """Return the maximum temperature."""
-        return round(self._device.temperature(self._temp_max), 1)
+        """Return the maximum temperature (full mode)."""
+        return self._attr_max_temp
 
     @property
     def state_attributes(self):
         """Return the state attributes."""
-        data = {ATTR_TEMPERATURE: self.target_temperature}
+        data = {ATTR_TEMPERATURE: self._attr_target_temperature}
         if self.is_on:
             data[ATTR_CURRENT_TEMPERATURE] = self.current_temperature
         else:
@@ -193,7 +213,7 @@ class RecteqClimate(climate.ClimateEntity):
             ATTR_HVAC_MODES: self.hvac_modes,
             ATTR_MIN_TEMP: self.min_temp,
             ATTR_MAX_TEMP: self.max_temp,
-            ATTR_TARGET_TEMP_STEP: self.target_temperature_step,
+            ATTR_TARGET_TEMP_STEP: self._attr_target_temperature_step,
         }
 
     @property
@@ -208,16 +228,31 @@ class RecteqClimate(climate.ClimateEntity):
     async def async_added_to_hass(self):
         """Handle entity addition to Home Assistant."""
         self.async_on_remove(self._device.async_add_listener(self._update_callback))
+        # Fetch initial state from the device
+        await self._device.async_request_refresh()
+        initial_target = self.target_temperature
+        self._attr_target_temperature = initial_target
+        self._intended_target_temperature = None  # No intended temp on startup
+        self.async_write_ha_state()
 
     @callback
     def _update_callback(self):
         """Handle updates from the device."""
+        new_target_temp = self.target_temperature
+        _LOGGER.info(f"Device reported target temperature: {new_target_temp}°F")
+
+        # Only update the entity's target temperature if it matches the intended
+        # temperature or if no intended temperature is set
+        if self._intended_target_temperature is None:
+            self._attr_target_temperature = new_target_temp
+        elif new_target_temp == self._intended_target_temperature:
+            self._attr_target_temperature = new_target_temp
+            self._intended_target_temperature = None  # Reset after confirmation
+            _LOGGER.info(f"Device confirmed intended temperature: {new_target_temp}°F")
+        else:
+            _LOGGER.debug(
+                f"Ignoring device update {new_target_temp}°F; "
+                f"waiting for intended {self._intended_target_temperature}°F"
+            )
+
         self.async_write_ha_state()
-
-# TODO Support "Max Smoke" Mode
-#   The recteq app sets the target temperature to 180 when it's on TEMP_MIN
-#   and the user taps the "-" button one more time.
-
-# TODO Support "Full" Mode
-#   The recteq app sets the target temperature to 600 when it's on TEMP_MAX
-#   and the user taps the "+" button one more time.
