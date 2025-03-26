@@ -123,34 +123,37 @@ class RecteqClimate(ClimateEntity):
         temp = kwargs.get(ATTR_TEMPERATURE)
         if temp is not None:
             current_temp = self._attr_target_temperature
-            step = self._attr_target_temperature_step  # e.g., 5°F
+            step = self._attr_target_temperature_step
 
             if current_temp is not None:
-                # Handle button presses (exact step size change)
-                if abs(temp - current_temp) == step:
-                    if current_temp == self._temp_min and temp < current_temp:
-                        temp = self._low_mode_temp  # Jump to low mode
-                    elif current_temp == self._temp_max and temp > current_temp:
-                        temp = self._full_mode_temp  # Jump to full mode
+                if temp < self._temp_min:
+                    if temp == self._low_mode_temp:
+                        _LOGGER.debug(f"Temp set directly to Low Mode")
+                        pass  # Allow exact low_mode_temp
+                    elif current_temp == self._temp_min and temp == self._temp_min - step:
+                        _LOGGER.debug(f"Snap to Low Mode")
+                        temp = self._low_mode_temp
                     else:
-                        # Normal step, keep within min and max
-                        temp = max(self._temp_min, min(self._temp_max, temp))
+                        _LOGGER.debug(f"Snap to min temp")
+                        temp = self._temp_min
+                elif temp > self._temp_max:
+                    if temp == self._full_mode_temp:
+                        _LOGGER.debug(f"Temp set directly to Full Mode")
+                        pass #Allow exact full_mode_temp
+                    elif current_temp == self._temp_max and temp == self._temp_max + step:
+                        _LOGGER.debug(f"Snap to Full Mode")
+                        temp = self._full_mode_temp
+                    else:
+                        _LOGGER.debug(f"Snap to max temp")
+                        temp = self._temp_max
                 else:
-                    # Handle slider movement with snapping
-                    if self._low_mode_temp < temp < self._temp_min:
-                        temp = self._temp_min  # Snap to min
-                    elif self._temp_max < temp < self._full_mode_temp:
-                        temp = self._temp_max  # Snap to max
-                    # Ensure temperature stays within overall bounds
-                    temp = max(self._low_mode_temp, min(self._full_mode_temp, temp))
+                    _LOGGER.debug(f"No special temp requirement")
+                    pass 
 
-            # Send the new temperature to the device
-            self._device.dps(self._dps["DPS_TARGET"], int(temp + 0.5))
-            # Set the intended target temperature
-            self._intended_target_temperature = temp
-            # Update the entity's target temperature immediately for the UI
+            # Set the temperature on the device
+            self._device.dps(self._dps['DPS_TARGET'], int(temp + 0.5))
+            # Update the entity's target temperature immediately
             self._attr_target_temperature = temp
-            _LOGGER.info(f"Set intended target temperature to {temp}°F")
             # Update the UI right away in a thread-safe manner
             self.hass.loop.call_soon_threadsafe(lambda: self.async_write_ha_state())
 
