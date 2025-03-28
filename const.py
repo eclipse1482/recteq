@@ -4,7 +4,7 @@ import homeassistant.const as hac
 
 # These points are required by the HACS integration
 PROJECT = 'Recteq Custom Integration'
-VERSION_TUPLE = (0, 2, 3)
+VERSION_TUPLE = (1, 0, 0)
 VERSION = __version__ = '%d.%d.%d' % VERSION_TUPLE
 __author__ = 'Paul Dugas <paul@dugas.cc>'
 ISSUE_LINK = 'https://github.com/eclipse1482/recteq/issues'
@@ -21,7 +21,9 @@ GRILL_MODELS = {
         'DPS_PROBEA': '104',
         'DPS_PROBEB': '105',
         'TEMP_MIN': 200,
-        'TEMP_MAX': 500
+        'TEMP_MAX': 500,
+        'LOW_MODE_TEMP': 180,  # Temperature for Low mode (e.g., Max Smoke)
+        'FULL_MODE_TEMP': 600  # Temperature for Full mode
     },
     'RT700': {
         'DPS_POWER': '1',
@@ -30,7 +32,9 @@ GRILL_MODELS = {
         'DPS_PROBEA': '103',
         'DPS_PROBEB': '104',
         'TEMP_MIN': 200,
-        'TEMP_MAX': 500
+        'TEMP_MAX': 500,
+        'LOW_MODE_TEMP': 180,  # Temperature for Low mode (e.g., Max Smoke)
+        'FULL_MODE_TEMP': 600  # Temperature for Full mode
     }
 }
 
