@@ -142,6 +142,7 @@ sensor:
 ## Change Log
 
 * _future_
+* 1.0.0
   * Fix error for async_forward_entry_setup being deprecated 
   * Add low and full modes
 * 0.2.1
