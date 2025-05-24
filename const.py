@@ -32,9 +32,9 @@ GRILL_MODELS = {
         'DPS_PROBEA': '103',
         'DPS_PROBEB': '104',
         'TEMP_MIN': 200,
-        'TEMP_MAX': 500,
+        'TEMP_MAX': 600,
         'LOW_MODE_TEMP': 180,  # Temperature for Low mode (e.g., Max Smoke)
-        'FULL_MODE_TEMP': 600  # Temperature for Full mode
+        'FULL_MODE_TEMP': 700  # Temperature for Full mode
     }
 }
 
