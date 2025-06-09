@@ -15,7 +15,7 @@ entity to control the unit and sensor entities for the probes.
 
 > **NOTE** - This isn't supported or approved by [recteq][recteq] at all!
 
-![climate](img/climate.png)
+![climate](img/full_interface.png)
 
 ![entities](img/entities.png)
 
@@ -56,92 +56,385 @@ thermostat card will still display °C but the values will actually be °F.
 
 ## User Interface
 
-The stock [Thermostat Card](https://www.home-assistant.io/lovelace/thermostat/)
-can be used to present the current state of the recteq when it's on. I like to
-hide it and display a button instead when it's off. I use conditionals like
-below. The result is shown in the screenshot at that top of this document.
+I use the stock [Thermostat Card](https://www.home-assistant.io/lovelace/thermostat/)
+to turn it on/off, adust temperature, and see the current state of the Recteq.
 
+Below the Thermostat Card, I use Tile Cards to display a custom probe name, probe actual temperature, and enter probe target temperature. The probe target temperature is a Helper integer. I also have buttons to turn notifications on or off for each probe which interacts with the Notification Automations described in the next section.
+
+Adjusting temperature can be done by dragging the temperature selector or by clicking +/-
+
+**Low and full modes can be done by dragging the temperature slider all the way to the highest or lowest temperature settings, or by hitting plus or minus when you are at the highest or lowest temperatures that can be controlled to.**
+
+![climate](img/thermostat.png)
+
+Example yaml for Probe A Tile Cards:
 ```yaml
-type: vertical-stack
-cards:
-  - type: conditional
-    conditions:
-      - entity: climate.smoker
-        state: 'off'
-    card:
-      type: glance
-      entities:
-        - entity: climate.smoker
-          tap_action:
-            action: toggle
-  - type: conditional
-    conditions:
-      - entity: climate.smoker
-        state_not: 'off'
-    card:
-      type: thermostat
-      entity: climate.smoker
-  - type: conditional
-    conditions:
-      - entity: climate.smoker
-        state_not: 'off'
-      - entity: input_number.smoker_probe_a_target
-        state_not: '0.0'
-    card:
-      type: glance
-      entities:
-        - entity: sensor.smoker_probe_a_temperature
-          name: Probe-A
-        - entity: input_number.smoker_probe_a_target
-          name: Target
-        - entity: sensor.smoker_probe_a_status
-          name: Status
-      state_color: true
-  - type: history-graph
-    entities:
-      - entity: sensor.smoker_target_temperature
-        name: Target
-      - entity: sensor.smoker_actual_temperature
-        name: Actual
-      - entity: sensor.smoker_probe_a_temperature
-        name: Probe-A
-      - entity: sensor.smoker_probe_b_temperature
-        name: Probe-B
-    refresh_interval: 0
-    hours_to_show: 8
+type: tile
+entity: input_text.probe_a_name
+features_position: bottom
+vertical: false
 ```
 
-The third panel above mimics the logic in the app that monitors the probe. I
-created an `input_number` named "Smoker Probe-A Target" (min=0.0, max=500.0,
-step=5.0, mode=slider, unit=°F, icon=mdi:thermometer). Then I added the
-template sensor below. An automation to send notifications could be added too
-if desired.
+```yaml
+type: tile
+entity: sensor.rt700_probe_a_temperature
+features_position: bottom
+vertical: false
+name: Actual
+```
+
+```yaml
+type: tile
+features_position: bottom
+vertical: false
+entity: input_number.probe_a_alarm_temp
+name: Target
+```
+
+```yaml
+type: tile
+entity: input_boolean.probe_a_alarm_set
+features_position: bottom
+vertical: false
+hide_state: true
+name: Notifications
+icon: mdi:bell
+tap_action:
+  action: toggle
+icon_tap_action:
+  action: more-info
+```
+Below the Thermostat Card, I have two History Graphs. One for Grill Temperature History and one for Probe History:
+
+```yaml
+type: history-graph
+entities:
+  - entity: sensor.rt700_probe_a_temperature
+  - entity: sensor.rt700_probe_b_temperature
+  - entity: input_number.probe_a_alarm_temp
+  - entity: input_number.probe_b_alarm_temp
+title: Probe Temps
+fit_y_data: true
+grid_options:
+  columns: full
+hours_to_show: 1
+```
+
+![entities](img/full_interface.png)
+```yaml
+type: history-graph
+entities:
+  - entity: sensor.rt700_target_temperature
+  - entity: sensor.rt700_actual_temperature
+  - entity: sensor.rt700_probe_a_temperature
+  - entity: sensor.rt700_probe_b_temperature
+min_y_axis: 0
+title: Grill Temp History
+grid_options:
+  columns: full
+hours_to_show: 2
+```
+You will also need to create helpers for this UI to function properly. Please see the screenshot below. You will need to create:
+- input_text.probe_a_name
+- input_boolean.probe_a_alarm_temp
+- input_number.probe_a_alarm_temp
+- input_text.probe_b_name
+- input_boolean.probe_b_alarm_temp
+- input_number.probe_b_alarm_temp
+- input_number.recteq_temp_variance (I actually don't know if this one is still needed.)
+
+![helpers](img/helpers.png)
 
 > **NOTE* - If you're using the "Force Fahrenheit" option, don't set the units
 > on the input\_number or HA will try to convert it automagically.
 
+## Notifications
+Paste these scripts into your automations.yaml file. These automations send notifications for various reasons such as turning on your grill, when it is approaching target temperature. When it exceeds or falls far below target temperature. When probes are almost at temperature and at temperature. Etc.
+
+![notifications](img/notifications.png)
+
 ```yaml
-sensor:
-  - platform: template
-    sensors:
-      smoker_probe_a_status:
-        value_template: >
-          {% if states('climate.smoker') == 'off' or states('sensor.smoker_probe_a_temperature') == 'unavailable' -%}
-            undefined
-          {% else %}
-            {% set target = states('input_number.smoker_probe_a_target')|round %}
-            {% set actual = states('sensor.smoker_probe_a_temperature')|round %}
-            {% set offset = actual - target %}
-            {% if offset > 5 %}Over Temp!
-            {% elif offset > -5 %}At Target
-            {% elif offset > -15 %}Approaching...
-            {% else %}Waiting...{% endif %}
-          {%- endif %}
+- id: '1626129294093'
+  alias: Recteq Probe A Alarm - 5F
+  description: ''
+  triggers:
+  - value_template: "{% if states('sensor.rt700_probe_a_temperature') not in ['unavailable','unknown']
+      %}\n  {% if float(states.sensor.rt700_probe_a_temperature.state) >= float(states.input_number.probe_a_alarm_temp.state)-5
+      %}\n   True\n  {% else %}\n   False\n  {% endif %}\n{% else %}\n False\n{% endif
+      %}"
+    trigger: template
+  conditions:
+  - condition: state
+    entity_id: input_boolean.probe_a_alarm_set
+    state: 'on'
+  - condition: numeric_state
+    entity_id: input_number.probe_a_alarm_temp
+    above: 0
+  actions:
+  - data:
+      message: Probe A is 5 degrees below target temp
+      title: Food is Almost Ready
+      data:
+        channel: recteq
+        actions:
+        - action: URI
+          title: View
+          uri: /lovelace/grill
+    action: notify.all_devices
+  - wait_for_trigger:
+    - value_template: "{% if states('sensor.rt700_probe_a_temperature') not in ['unavailable','unknown']
+        %}\n  {% if float(states.sensor.rt700_probe_a_temperature.state) < float(states.input_number.probe_a_alarm_temp.state)-5
+        %}\n   True\n  {% else %}\n   False\n  {% endif %}\n{% else %}\n False\n{%
+        endif %}"
+      trigger: template
+    - entity_id: sensor.rt700_probe_a_temperature
+      to: unavailable
+      trigger: state
+    continue_on_timeout: false
+    timeout: '20:00:00'
+  mode: single
+- id: '1626131232835'
+  alias: Recteq Grill Temperature - 10F
+  description: ''
+  triggers:
+  - value_template: "{% if states('sensor.rt700_actual_temperature') not in ['unavailable','unknown']
+      %}\n  {% if float(states.sensor.rt700_actual_temperature.state) >= float(states.sensor.rt700_target_temperature.state)-10
+      %}\n   True\n  {% else %}\n   False\n  {% endif %}\n{% else %}\n False\n{% endif
+      %}"
+    trigger: template
+  conditions: []
+  actions:
+  - data:
+      message: Your grill will be ready soon. It is 10 degrees below your target temperature.
+      title: Recteq - Heating up!
+      data:
+        channel: recteq
+        actions:
+        - action: URI
+          title: View
+          uri: /lovelace/grill
+    action: notify.all_devices
+  - wait_for_trigger:
+    - value_template: "{% if states('sensor.rt700_actual_temperature') not in ['unavailable','unknown']
+        %}\n  {% if float(states.sensor.rt700_actual_temperature.state) < float(states.sensor.rt700_target_temperature.state)-10
+        %}\n   True\n  {% else %}\n   False\n  {% endif %}\n{% else %}\n False\n{%
+        endif %}"
+      trigger: template
+      for:
+        hours: 0
+        minutes: 5
+        seconds: 0
+    timeout: '20:00:00'
+    continue_on_timeout: false
+  - data:
+      message: Your grill has dropped 10 degrees below your target temperature
+      title: Recteq - Grill has cooled!
+      data:
+        actions:
+        - action: URI
+          title: View
+          uri: /lovelace/grill
+        color: red
+    action: notify.all_devices
+  mode: single
+- id: '1626140861013'
+  alias: Recteq Grill Temperature + 10F
+  description: ''
+  triggers:
+  - value_template: "{% if states('sensor.rt700_actual_temperature') not in ['unavailable','unknown']
+      %}\n  {% if float(states.sensor.rt700_actual_temperature.state) >= float(states.sensor.rt700_target_temperature.state)+10
+      %}\n   True\n  {% else %}\n   False\n  {% endif %}\n{% else %}\n False\n{% endif
+      %}"
+    trigger: template
+  conditions: []
+  actions:
+  - data:
+      message: Your grill is 10 degrees above your target temperature
+      title: Recteq - Warning!
+      data:
+        channel: recteq
+        actions:
+        - action: URI
+          title: View
+          uri: /lovelace/grill
+        color: red
+    action: notify.all_devices
+  - wait_for_trigger:
+    - value_template: "{% if states('sensor.rt700_actual_temperature') not in ['unavailable','unknown']
+        %}\n  {% if float(states.sensor.rt700_actual_temperature.state) < float(states.sensor.rt700_target_temperature.state)+10
+        %}\n   True\n  {% else %}\n   False\n  {% endif %}\n{% else %}\n False\n{%
+        endif %}"
+      trigger: template
+    continue_on_timeout: false
+    timeout: '20:00:00'
+  - data:
+      message: Your grill is back within 10 degrees of your target temperature
+      title: Recteq
+      data:
+        channel: recteq
+        actions:
+        - action: URI
+          title: View
+          uri: /lovelace/grill
+    action: notify.all_devices
+  mode: single
+- id: '1626380331997'
+  alias: Recteq Probe B Alarm - 5F
+  description: ''
+  triggers:
+  - value_template: "{% if states('sensor.rt700_probe_b_temperature') not in ['unavailable','unknown']
+      %}\n  {% if float(states.sensor.rt700_probe_b_temperature.state) >= float(states.input_number.probe_b_alarm_temp.state)-5
+      %}\n   True\n  {% else %}\n   False\n  {% endif %}\n{% else %}\n False\n{% endif
+      %}"
+    trigger: template
+  conditions:
+  - condition: state
+    entity_id: input_boolean.probe_b_alarm_set
+    state: 'on'
+  - condition: numeric_state
+    entity_id: input_number.probe_b_alarm_temp
+    above: 0
+  actions:
+  - data:
+      message: Probe B is 5 degrees below target temp
+      title: Food is Almost Ready
+      data:
+        channel: recteq
+        actions:
+        - action: URI
+          title: View
+          uri: /lovelace/grill
+    action: notify.all_devices
+  - wait_for_trigger:
+    - value_template: "{% if states('sensor.rt700_probe_b_temperature') not in ['unavailable','unknown']
+        %}\n  {% if float(states.sensor.rt700_probe_b_temperature.state) < float(states.input_number.probe_b_alarm_temp.state)-5
+        %}\n   True\n  {% else %}\n   False\n  {% endif %}\n{% else %}\n False\n{%
+        endif %}"
+      trigger: template
+    - entity_id: sensor.rt700_probe_b_temperature
+      to: unavailable
+      trigger: state
+    continue_on_timeout: false
+    timeout: '20:00:00'
+  mode: single
+- id: '1626380349717'
+  alias: Recteq Probe B Alarm
+  description: ''
+  triggers:
+  - value_template: "{% if states('sensor.rt700_probe_b_temperature') not in ['unavailable','unknown']
+      %}\n  {% if float(states.sensor.rt700_probe_b_temperature.state) >= float(states.input_number.probe_b_alarm_temp.state)
+      %}\n   True\n  {% else %}\n   False\n  {% endif %}\n{% else %}\n False\n{% endif
+      %}"
+    trigger: template
+  conditions:
+  - condition: state
+    entity_id: input_boolean.probe_b_alarm_set
+    state: 'on'
+  - condition: numeric_state
+    entity_id: input_number.probe_b_alarm_temp
+    above: 0
+  actions:
+  - data:
+      message: 'Probe B is at target temp '
+      title: Food is Done!
+      data:
+        channel: recteq
+        actions:
+        - action: URI
+          title: View
+          uri: /lovelace/grill
+        color: red
+    action: notify.all_devices
+  - wait_for_trigger:
+    - value_template: "{% if states('sensor.rt700_probe_b_temperature') not in ['unavailable','unknown']
+        %}\n  {% if float(states.sensor.rt700_probe_b_temperature.state) < float(states.input_number.probe_b_alarm_temp.state)
+        %}\n   True\n  {% else %}\n   False\n  {% endif %}\n{% else %}\n False\n{%
+        endif %}"
+      trigger: template
+    - entity_id: sensor.rt700_probe_b_temperature
+      to: unavailable
+      trigger: state
+    continue_on_timeout: false
+    timeout: '20:00:00'
+  mode: single
+- id: '1626380490549'
+  alias: Recteq Probe A Alarm
+  description: ''
+  triggers:
+  - value_template: "{% if states('sensor.rt700_probe_a_temperature') not in ['unavailable','unknown']
+      %}\n  {% if float(states.sensor.rt700_probe_a_temperature.state) >= float(states.input_number.probe_a_alarm_temp.state)
+      %}\n   True\n  {% else %}\n   False\n  {% endif %}\n{% else %}\n False\n{% endif
+      %}"
+    trigger: template
+  conditions:
+  - condition: state
+    entity_id: input_boolean.probe_a_alarm_set
+    state: 'on'
+  - condition: numeric_state
+    entity_id: input_number.probe_a_alarm_temp
+    above: 0
+  actions:
+  - data:
+      message: Probe A is at target temp
+      title: Food is Done!
+      data:
+        channel: recteq
+        actions:
+        - action: URI
+          title: View
+          uri: /lovelace/grill
+        color: red
+    action: notify.all_devices
+  - wait_for_trigger:
+    - value_template: "{% if states('sensor.rt700_probe_a_temperature') not in ['unavailable','unknown']
+        %}\n  {% if float(states.sensor.rt700_probe_a_temperature.state) < float(states.input_number.probe_a_alarm_temp.state)
+        %}\n   True\n  {% else %}\n   False\n  {% endif %}\n{% else %}\n False\n{%
+        endif %}"
+      trigger: template
+    - trigger: state
+      entity_id:
+      - sensor.rt700_probe_a_temperature
+      to: unavailable
+    continue_on_timeout: false
+    timeout: '20:00:00'
+  mode: single
+- id: '1626739464825'
+  alias: Recteq Grill at Temperature
+  description: ''
+  triggers:
+  - value_template: "{% if states('sensor.rt700_actual_temperature') not in ['unavailable','unknown']
+      %}\n {% if float(states.sensor.rt700_actual_temperature.state) >= float(states.sensor.rt700_target_temperature.state)
+      %}\n  True\n {% else %}\n  False\n {% endif %}\n{% else %}\n False\n{% endif
+      %}"
+    trigger: template
+  conditions: []
+  actions:
+  - data:
+      message: Your grill is at your target temperature
+      title: Recteq Ready!
+      data:
+        channel: recteq
+        actions:
+        - action: URI
+          title: View
+          uri: /lovelace/grill
+        sticky: false
+    action: notify.all_devices
+  - wait_for_trigger:
+    - value_template: "{% if states('sensor.rt700_actual_temperature') not in ['unavailable','unknown']
+        %}\n  {% if float(states.sensor.rt700_actual_temperature.state) < float(states.sensor.rt700_target_temperature.state)
+        - 50 %}\n   True\n  {% else %}\n   False\n  {% endif %}\n{% else %}\n False\n{%
+        endif %}"
+      trigger: template
+    continue_on_timeout: false
+    timeout: '20:00:00'
+  mode: single
 ```
 
 ## Change Log
 
 * _future_
+* 1.0.0
   * Fix error for async_forward_entry_setup being deprecated 
   * Add low and full modes
 * 0.2.1
